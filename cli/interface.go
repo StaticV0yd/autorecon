@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 )
 
 func CommandLine() int {
@@ -37,9 +38,28 @@ func CommandLine() int {
 }
 
 func parse(input string) bool {
-	//fmt.Println(input)
-	if input == "exit\n" {
+	// Get rid of any leading whitespace
+	for string(input[0]) == " " {
+		input = input[1:]
+	}
+	if string(input[len(input)-1]) == "\n" {
+		input = input[0 : len(input)-1]
+	}
+
+	// Check to see if the user wants to exit
+	if input == "exit" {
 		return true
+	} else if len(input) >= 4 && input[0:4] == "nmap" { // Check for nmap
+
+	} else if len(input) >= 4 && input[0:4] == "show" { // Check for commands relating to the database
+
+	} else { // Otherwise, pipe output to shell
+		shell, _ := os.LookupEnv("SHELL")
+		cmd := exec.Command(shell, "-c", input)
+		err := cmd.Run()
+		if err != nil {
+			os.Stderr.WriteString(err.Error() + "\n")
+		}
 	}
 
 	return false
