@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+
+	"github.com/StaticV0yd/autorecon/utils"
 )
 
 func CommandLine() int {
@@ -57,8 +59,12 @@ func parse(input string) bool {
 	// Check to see if the user wants to exit
 	if input == "exit" {
 		return true
-	} else if len(input) >= 4 && input[0:4] == "nmap" { // Check for nmap
-
+	} else if len(input) >= 4 && input[0:4] == "scan" { // Check for scan (will be using nmap for the scanning, so 'scan' is essentially an alias for nmap)
+		var args string
+		if len(input) > 4 {
+			args = input[5:]
+		}
+		utils.Scan(args)
 	} else if len(input) >= 4 && input[0:4] == "show" { // Check for commands relating to the database
 
 	} else if (len(input) == 2 && input[0:2] == "cd") || (len(input) > 2 && input[0:3] == "cd ") {
