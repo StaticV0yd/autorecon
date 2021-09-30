@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -12,7 +13,14 @@ func CommandLine() int {
 	for true {
 		// Create the prompt and get ready for user input
 		USER, _ := os.LookupEnv("USER")
-		PWD, _ := os.LookupEnv("PWD")
+		//PWD, _ := os.LookupEnv("PWD")
+		cmd := exec.Command("pwd")
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Start()
+		data, _ := io.ReadAll(stdout)
+		cmd.Wait()
+		PWD := string(data)
+		PWD = PWD[:len(PWD)-1]
 
 		//fmt.Print("\n\033[38;5;27m" + PWD + "\n\033[38;5;15m" + USER + "\033[38;5;1m@autorecon>\033[38;5;15m ")
 		fmt.Print("\n" + USER + "\033[38;5;1m@autorecon\033[38;5;15m " + "% \033[38;5;27m" + PWD + "\033[38;5;15m\n->> ")
@@ -53,13 +61,29 @@ func parse(input string) bool {
 
 	} else if len(input) >= 4 && input[0:4] == "show" { // Check for commands relating to the database
 
+	} else if (len(input) == 2 && input[0:2] == "cd") || (len(input) > 2 && input[0:3] == "cd ") {
+		var path string
+		if len(input) > 2 {
+			path = input[3:]
+		} else {
+			path, _ = os.UserHomeDir()
+		}
+		err := os.Chdir(path)
+		if err != nil {
+			os.Stderr.WriteString(err.Error())
+		}
+
 	} else { // Otherwise, pipe output to shell
 		shell, _ := os.LookupEnv("SHELL")
-		cmd := exec.Command(shell, "-c", input)
-		err := cmd.Run()
-		if err != nil {
-			os.Stderr.WriteString(err.Error() + "\n")
+		cmd := &exec.Cmd{
+			Path:   shell,
+			Args:   []string{shell, "-c", input},
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Stdin:  os.Stdin,
 		}
+
+		cmd.Run()
 	}
 
 	return false
