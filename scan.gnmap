@@ -1,4 +1,0 @@
-# Nmap 7.92 scan initiated Thu Sep 30 17:33:05 2021 as: nmap -oA scan 129.21.105.101
-Host: 129.21.105.101 ()	Status: Up
-Host: 129.21.105.101 ()	Ports: 	Ignored State: closed (1000)
-# Nmap done at Thu Sep 30 17:33:05 2021 -- 1 IP address (1 host up) scanned in 0.17 seconds
