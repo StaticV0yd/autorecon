@@ -1,4 +1,4 @@
-package script
+package data
 
 type Script struct {
 	id     string

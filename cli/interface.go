@@ -6,13 +6,17 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/StaticV0yd/autorecon/data"
 	"github.com/StaticV0yd/autorecon/utils"
 )
 
 func CommandLine() int {
+	var hosts *[]data.Host = new([]data.Host)
+
 	// in a loop:
-	for true {
+	for {
 		// Create the prompt and get ready for user input
 		USER, _ := os.LookupEnv("USER")
 		//PWD, _ := os.LookupEnv("PWD")
@@ -34,8 +38,7 @@ func CommandLine() int {
 		}
 
 		// Parse the input
-		var leave bool
-		leave = parse(input)
+		var leave bool = parse(input, hosts)
 		if leave {
 			fmt.Println("Exiting autorecon...")
 			break
@@ -47,7 +50,7 @@ func CommandLine() int {
 	return 0
 }
 
-func parse(input string) bool {
+func parse(input string, hosts *[]data.Host) bool { //TODO: Implement 'show' command which shows hosts, ports, data, etc.
 	// Get rid of any leading whitespace
 	for string(input[0]) == " " {
 		input = input[1:]
@@ -59,14 +62,28 @@ func parse(input string) bool {
 	// Check to see if the user wants to exit
 	if input == "exit" {
 		return true
-	} else if len(input) >= 4 && input[0:4] == "scan" { // Check for scan (will be using nmap for the scanning, so 'scan' is essentially an alias for nmap)
+	} else if len(input) >= 4 && input[0:4] == "scan" {
 		var args string
 		if len(input) > 4 {
 			args = input[5:]
 		}
-		utils.Scan(args)
+		*hosts = utils.Scan(args)
+		//hosts = append(hosts, utils.Scan(args)...)
+	} else if len(input) >= 6 && input[0:6] == "suscan" { // Check for scan (will be using nmap for the scanning, so 'scan' is essentially an alias for nmap)
+		var args string
+		if len(input) > 6 {
+			args = input[7:]
+		}
+		*hosts = utils.SuScan(args)
+		//*hosts = append(*hosts, utils.SuScan(args)...)
 	} else if len(input) >= 4 && input[0:4] == "show" { // Check for commands relating to the database
-
+		if !(len(strings.Split(input, " ")) < 2) {
+			if strings.Split(input, " ")[1] == "hosts" {
+				for _, host := range *hosts {
+					fmt.Print("'" + host.Address + "'" + " ")
+				}
+			}
+		}
 	} else if (len(input) == 2 && input[0:2] == "cd") || (len(input) > 2 && input[0:3] == "cd ") {
 		var path string
 		if len(input) > 2 {
@@ -79,6 +96,8 @@ func parse(input string) bool {
 			os.Stderr.WriteString(err.Error())
 		}
 
+	} else if len(input) >= 4 && input[0:4] == "test" {
+		*hosts = utils.ReadNmap()
 	} else { // Otherwise, pipe output to shell
 		shell, _ := os.LookupEnv("SHELL")
 		cmd := &exec.Cmd{

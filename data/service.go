@@ -1,4 +1,4 @@
-package service
+package data
 
 type Service struct {
 	name      string
